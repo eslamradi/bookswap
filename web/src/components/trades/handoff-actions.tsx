@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
@@ -9,17 +9,28 @@ type ExchangeMethod = "meetup" | "self_arranged" | null;
 export function HandoffActions({
   tradeId,
   exchangeMethod: initialMethod,
+  preferredMethod,
   isRequester,
   confirmedByRequester,
   confirmedByOwner,
 }: {
   tradeId: string;
   exchangeMethod: ExchangeMethod;
+  preferredMethod: ExchangeMethod;
   isRequester: boolean;
   confirmedByRequester: boolean;
   confirmedByOwner: boolean;
 }) {
-  const [method, setMethod] = useState<ExchangeMethod>(initialMethod);
+  // No trade-level method set yet, but this viewer has a saved preference —
+  // apply it immediately rather than making them choose again. Still
+  // changeable via "Not this time?" below.
+  const appliedFromPreference = !initialMethod && !!preferredMethod;
+  const [method, setMethod] = useState<ExchangeMethod>(
+    initialMethod ?? preferredMethod,
+  );
+  const [showPreferenceHint, setShowPreferenceHint] = useState(
+    appliedFromPreference,
+  );
   const [confirmedMine, setConfirmedMine] = useState(
     isRequester ? confirmedByRequester : confirmedByOwner,
   );
@@ -30,6 +41,22 @@ export function HandoffActions({
   );
   const [busy, setBusy] = useState(false);
 
+  // Persist the auto-applied preference to the trade so it sticks (and the
+  // other participant sees it too) — a one-time sync on mount, not a loop.
+  useEffect(() => {
+    if (!appliedFromPreference) return;
+    const supabase = createClient();
+    supabase
+      .from("trades")
+      .update({ exchange_method: preferredMethod })
+      .eq("id", tradeId)
+      .then();
+    // Only ever runs once per mount when this condition is true at load —
+    // appliedFromPreference is derived from props that don't change after
+    // mount, so this can't loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   async function chooseMethod(chosen: "meetup" | "self_arranged") {
     setBusy(true);
     const supabase = createClient();
@@ -39,7 +66,10 @@ export function HandoffActions({
       .eq("id", tradeId);
 
     setBusy(false);
-    if (!error) setMethod(chosen);
+    if (!error) {
+      setMethod(chosen);
+      setShowPreferenceHint(false);
+    }
   }
 
   async function confirmExchanged() {
@@ -98,6 +128,23 @@ export function HandoffActions({
 
   return (
     <div id="handoff-guidance" data-object-id="handoff-guidance">
+      {showPreferenceHint && (
+        <p
+          id="handoff-preference-applied-hint"
+          data-object-id="handoff-preference-applied-hint"
+          className="mb-3 text-center text-xs text-gray-400"
+        >
+          Using your saved preference —{" "}
+          <button
+            type="button"
+            onClick={() => setMethod(null)}
+            className="underline hover:text-gray-600"
+          >
+            not this time?
+          </button>
+        </p>
+      )}
+
       <div className="mb-6 rounded-lg border border-gray-200 bg-white p-4">
         {method === "meetup" ? (
           <>

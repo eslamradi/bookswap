@@ -32,6 +32,12 @@ export default async function HandoffPage({
 
   const isRequester = trade.requester_id === user.id;
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("preferred_exchange_method")
+    .eq("id", user.id)
+    .single();
+
   return (
     <main className="min-h-screen bg-gray-50">
       <header className="border-b border-gray-200 bg-white px-4 py-3 text-sm text-gray-500">
@@ -42,6 +48,7 @@ export default async function HandoffPage({
         <HandoffActions
           tradeId={trade.id}
           exchangeMethod={trade.exchange_method}
+          preferredMethod={profile?.preferred_exchange_method ?? null}
           isRequester={isRequester}
           confirmedByRequester={trade.handoff_confirmed_by_requester}
           confirmedByOwner={trade.handoff_confirmed_by_owner}

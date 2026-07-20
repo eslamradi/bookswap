@@ -68,8 +68,14 @@ export default async function ListingsPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       <header className="border-b border-gray-200 bg-white px-4 py-3">
-        <div className="mx-auto max-w-lg text-sm text-gray-500">
-          bookswap
+        <div className="mx-auto flex max-w-lg items-center justify-between">
+          <span className="text-sm text-gray-500">bookswap</span>
+          <Link
+            href="/account"
+            className="text-sm text-bookswap-600 hover:text-bookswap-700"
+          >
+            Account
+          </Link>
         </div>
       </header>
 
