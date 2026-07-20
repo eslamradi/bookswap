@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5.1 Account Settings - bookswap</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { theme: { extend: {
+            colors: { bookswap: { 50: '#eff6ff', 100: '#dbeafe', 500: '#2563eb', 600: '#1d4ed8', 700: '#1e40af' } },
+            fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
+        } } }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="components/dev-mode.css">
+</head>
+<body class="min-h-screen bg-gray-50 font-sans">
+    <button id="dev-mode-toggle" class="dev-mode-toggle" title="Toggle Dev Mode (Ctrl+E)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+        </svg>
+        <span>Dev Mode: OFF</span>
+    </button>
+    <div id="dev-mode-tooltip" class="dev-mode-tooltip" style="display: none;"></div>
+
+    <header class="bg-white border-b border-gray-200 px-4 py-3 text-sm text-gray-500">Privacy & Shipping</header>
+
+    <main class="max-w-lg mx-auto px-4 py-6">
+        <div id="settings-address-masking" data-object-id="settings-address-masking" class="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between mb-4">
+            <div>
+                <p class="font-medium text-gray-900">Address masking</p>
+                <p class="text-xs text-gray-500">Your address is never shown to other users</p>
+            </div>
+            <button
+                id="settings-address-masking-toggle"
+                data-object-id="settings-address-masking-toggle"
+                onclick="toggleAddressMasking()"
+                class="relative w-11 h-6 rounded-full transition-colors"
+            >
+                <span id="settings-toggle-track" class="absolute inset-0 rounded-full transition-colors"></span>
+                <span id="settings-toggle-knob" class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform"></span>
+            </button>
+        </div>
+
+        <div id="settings-ship-method" data-object-id="settings-ship-method" class="bg-white border border-gray-200 rounded-lg p-4 mb-4">
+            <p class="font-medium text-gray-900 mb-3">Default shipping method</p>
+            <div class="space-y-2">
+                <label class="flex items-center gap-2">
+                    <input type="radio" name="shipMethod" value="label" onchange="setShipMethod('label')">
+                    <span class="text-sm text-gray-700">Prepaid label</span>
+                </label>
+                <label class="flex items-center gap-2">
+                    <input type="radio" name="shipMethod" value="locker" onchange="setShipMethod('locker')">
+                    <span class="text-sm text-gray-700">Drop-off locker</span>
+                </label>
+            </div>
+        </div>
+
+        <p id="settings-reassurance" data-object-id="settings-reassurance" class="text-sm text-center text-gray-500">
+            Your address is never shown to other users
+        </p>
+
+        <p id="settings-saved-hint" data-object-id="settings-saved-hint" class="hidden text-xs text-center text-green-600 mt-2">
+            ✓ Saved
+        </p>
+    </main>
+
+    <script src="data/demo-data.js"></script>
+    <script src="shared/prototype-api.js"></script>
+    <script src="shared/init.js"></script>
+    <script src="shared/utils.js"></script>
+    <script src="components/dev-mode.js"></script>
+
+    <script>
+        /**
+         * Page: 5.1 Account Settings
+         * Purpose: Let Tom proactively configure privacy defaults before his first listing.
+         */
+        window.initPage = async function () {
+            console.log('📄 5.1 Account Settings loaded');
+            const settings = await window.PrototypeAPI.getPrivacySettings();
+            renderToggle(settings.addressMaskingEnabled);
+            if (settings.defaultShipMethod) {
+                const radio = document.querySelector(`input[name="shipMethod"][value="${settings.defaultShipMethod}"]`);
+                if (radio) radio.checked = true;
+            }
+        };
+
+        function renderToggle(enabled) {
+            const track = document.getElementById('settings-toggle-track');
+            const knob = document.getElementById('settings-toggle-knob');
+            track.className = `absolute inset-0 rounded-full transition-colors ${enabled ? 'bg-bookswap-600' : 'bg-gray-300'}`;
+            knob.style.transform = enabled ? 'translateX(20px)' : 'translateX(0)';
+        }
+
+        async function toggleAddressMasking() {
+            const settings = await window.PrototypeAPI.getPrivacySettings();
+            const newValue = !settings.addressMaskingEnabled;
+            await window.PrototypeAPI.updatePrivacySettings({ addressMaskingEnabled: newValue });
+            renderToggle(newValue);
+            showSaved();
+        }
+
+        async function setShipMethod(method) {
+            await window.PrototypeAPI.updatePrivacySettings({ defaultShipMethod: method });
+            showSaved();
+        }
+
+        function showSaved() {
+            const hint = document.getElementById('settings-saved-hint');
+            hint.classList.remove('hidden');
+            setTimeout(() => hint.classList.add('hidden'), 2000);
+        }
+    </script>
+</body>
+</html>

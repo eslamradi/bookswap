@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2.3 Notifications - bookswap</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { bookswap: { 50: '#eff6ff', 100: '#dbeafe', 500: '#2563eb', 600: '#1d4ed8', 700: '#1e40af' } },
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="components/dev-mode.css">
+</head>
+<body class="min-h-screen bg-gray-50 font-sans">
+    <button id="dev-mode-toggle" class="dev-mode-toggle" title="Toggle Dev Mode (Ctrl+E)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+        </svg>
+        <span>Dev Mode: OFF</span>
+    </button>
+    <div id="dev-mode-tooltip" class="dev-mode-tooltip" style="display: none;"></div>
+
+    <main class="min-h-screen flex items-center justify-center px-4">
+        <div class="w-full max-w-sm text-center">
+            <div id="notifications-confirmation" data-object-id="notifications-confirmation" class="mb-6">
+                <p class="text-xl font-bold text-gray-900 mb-2">✓ We'll notify you</p>
+                <p class="text-sm text-gray-500">Watching for:</p>
+                <p id="notifications-watched-title" data-object-id="notifications-watched-title" class="font-medium text-gray-900"></p>
+            </div>
+
+            <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+                <p class="text-sm text-gray-600">Notify via: <span class="font-medium text-gray-900">Push + Email</span></p>
+            </div>
+
+            <a
+                id="notifications-manage-alerts"
+                data-object-id="notifications-manage-alerts"
+                href="2.1-home-landing.html"
+                class="text-sm text-bookswap-600 hover:text-bookswap-700 font-medium"
+            >
+                Manage my alerts
+            </a>
+        </div>
+    </main>
+
+    <script src="data/demo-data.js"></script>
+    <script src="shared/prototype-api.js"></script>
+    <script src="shared/init.js"></script>
+    <script src="shared/utils.js"></script>
+    <script src="components/dev-mode.js"></script>
+
+    <script>
+        /**
+         * Page: 2.3 Notifications
+         * Purpose: Confirm the notify-me alert is active — the scenario's success point.
+         */
+        window.initPage = function () {
+            console.log('📄 2.3 Notifications loaded');
+            const params = new URLSearchParams(window.location.search);
+            const query = params.get('q') || '';
+            document.getElementById('notifications-watched-title').textContent = `"${query}"`;
+        };
+    </script>
+</body>
+</html>

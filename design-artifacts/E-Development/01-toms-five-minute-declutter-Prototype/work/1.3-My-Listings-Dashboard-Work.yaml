@@ -1,0 +1,26 @@
+page: "1.3 My Listings/Dashboard"
+scenario: "01-toms-five-minute-declutter"
+spec: "../../C-UX-Scenarios/01-toms-five-minute-declutter/1.3-my-listings-dashboard/1.3-my-listings-dashboard.md"
+created: 2026-07-13
+device_compatibility: "Fully Responsive (375px-1920px+)"
+design_fidelity: "Generic Gray Model"
+
+objects:
+  - confirmation banner ("✓ N books listed!")
+  - listing summary rows (thumbnail, title, status badge)
+  - add more books link
+
+sections:
+  - id: 1
+    name: "Confirmation Banner & Listing Summary"
+    estimate_minutes: 15
+    status: complete
+    completed_date: 2026-07-13
+    actual_minutes: 15
+    issues: none
+
+total_estimate_minutes: 15
+built_autonomously: true
+approved_by: Radi
+approved_date: 2026-07-13
+note: "Built without per-section approval gates per explicit user instruction. Single section — this is the simplest page in the scenario."

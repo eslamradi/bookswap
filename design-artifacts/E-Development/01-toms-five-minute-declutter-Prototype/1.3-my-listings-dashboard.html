@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1.3 My Listings/Dashboard - bookswap</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bookswap: { 50: '#eff6ff', 100: '#dbeafe', 500: '#2563eb', 600: '#1d4ed8', 700: '#1e40af' }
+                    },
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="components/dev-mode.css">
+</head>
+<body class="min-h-screen bg-gray-50 font-sans">
+    <button id="dev-mode-toggle" class="dev-mode-toggle" title="Toggle Dev Mode (Ctrl+E)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+        </svg>
+        <span>Dev Mode: OFF</span>
+    </button>
+    <div id="dev-mode-tooltip" class="dev-mode-tooltip" style="display: none;"></div>
+
+    <!-- ============================================================
+         SECTION 1: Confirmation Banner & Listing Summary
+         ============================================================ -->
+    <header class="bg-white border-b border-gray-200 px-4 py-3">
+        <div class="max-w-lg mx-auto">
+            <span class="text-sm text-gray-500">bookswap</span>
+        </div>
+    </header>
+
+    <main class="max-w-lg mx-auto px-4 py-6">
+        <div id="dashboard-confirmation" data-object-id="dashboard-confirmation" class="text-center mb-6">
+            <p class="text-xl font-bold text-gray-900">✓ <span id="dashboard-count">0</span> books listed!</p>
+        </div>
+
+        <div id="dashboard-listings" data-object-id="dashboard-listings" class="space-y-2">
+            <!-- listing rows rendered here by JS -->
+        </div>
+
+        <p id="dashboard-empty-hint" class="hidden text-sm text-gray-400 text-center py-8">
+            No listings yet — nothing's been submitted in this session.
+        </p>
+
+        <div class="mt-6 text-center">
+            <a
+                id="dashboard-add-more"
+                data-object-id="dashboard-add-more"
+                href="1.2-batch-listing.html"
+                class="text-sm text-bookswap-600 hover:text-bookswap-700 font-medium"
+            >
+                + Add more books
+            </a>
+        </div>
+    </main>
+
+    <script src="data/demo-data.js"></script>
+    <script src="shared/prototype-api.js"></script>
+    <script src="shared/init.js"></script>
+    <script src="shared/utils.js"></script>
+    <script src="components/dev-mode.js"></script>
+
+    <script>
+        /**
+         * Page: 1.3 My Listings/Dashboard
+         * Purpose: Confirm Tom's books are live — the scenario's success point.
+         */
+        window.initPage = async function () {
+            console.log('📄 1.3 My Listings/Dashboard loaded');
+
+            const user = await window.PrototypeAPI.getUser();
+            if (!user.authenticated) {
+                console.log('🔒 Not authenticated, redirecting to Sign Up/Login');
+                window.location.href = '1.1-sign-up-login.html';
+                return;
+            }
+
+            const listings = await window.PrototypeAPI.getListings();
+            renderListings(listings);
+        };
+
+        function renderListings(listings) {
+            const container = document.getElementById('dashboard-listings');
+            const confirmation = document.getElementById('dashboard-confirmation');
+            const emptyHint = document.getElementById('dashboard-empty-hint');
+            const countEl = document.getElementById('dashboard-count');
+
+            countEl.textContent = listings.length;
+
+            if (listings.length === 0) {
+                confirmation.classList.add('hidden');
+                emptyHint.classList.remove('hidden');
+                return;
+            }
+
+            container.innerHTML = listings.map((item) => `
+                <div id="dashboard-listing-${item.id}" data-object-id="dashboard-listing-${item.id}" class="bg-white border border-gray-200 rounded-lg p-3 flex items-center gap-3">
+                    <div class="w-10 h-14 bg-gray-100 rounded flex items-center justify-center text-xs text-gray-400 flex-shrink-0">
+                        cover
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-medium text-gray-900 truncate">${item.title}</p>
+                        <p class="text-sm text-gray-500 truncate">${item.author}</p>
+                    </div>
+                    <span class="text-xs font-medium text-green-700 bg-green-50 px-2 py-1 rounded">
+                        ${item.status}
+                    </span>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

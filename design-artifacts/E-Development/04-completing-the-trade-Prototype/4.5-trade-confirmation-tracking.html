@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4.5 Trade Confirmation & Tracking - bookswap</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { theme: { extend: {
+            colors: { bookswap: { 50: '#eff6ff', 100: '#dbeafe', 500: '#2563eb', 600: '#1d4ed8', 700: '#1e40af' } },
+            fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
+        } } }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="components/dev-mode.css">
+</head>
+<body class="min-h-screen bg-gray-50 font-sans">
+    <button id="dev-mode-toggle" class="dev-mode-toggle" title="Toggle Dev Mode (Ctrl+E)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+        </svg>
+        <span>Dev Mode: OFF</span>
+    </button>
+    <div id="dev-mode-tooltip" class="dev-mode-tooltip" style="display: none;"></div>
+
+    <header class="bg-white border-b border-gray-200 px-4 py-3 text-sm text-gray-500">bookswap</header>
+
+    <main class="max-w-lg mx-auto px-4 py-6">
+        <div id="tracking-status" data-object-id="tracking-status" class="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+            <p id="tracking-status-label" class="font-semibold text-gray-900 mb-3"></p>
+            <div class="flex items-center gap-1">
+                <div id="tracking-progress-bar" data-object-id="tracking-progress-bar" class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div id="tracking-progress-fill" class="h-full bg-bookswap-600 transition-all" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <button
+            id="tracking-simulate-update-btn"
+            data-object-id="tracking-simulate-update-btn"
+            onclick="handleSimulateUpdate()"
+            class="w-full py-3 border-2 border-dashed border-gray-300 text-gray-500 rounded-lg font-medium hover:border-bookswap-400 hover:text-bookswap-600 transition-colors mb-2"
+        >
+            [Prototype only] Simulate carrier update →
+        </button>
+        <p class="text-xs text-gray-400 text-center">
+            Real product would receive automatic carrier webhook updates — this button simulates that for the prototype.
+        </p>
+
+        <div id="tracking-delivered-actions" data-object-id="tracking-delivered-actions" class="hidden mt-6">
+            <button
+                onclick="window.location.href='4.6-post-trade-rating.html'"
+                class="w-full py-3 bg-bookswap-600 text-white rounded-lg font-semibold hover:bg-bookswap-700 transition-colors"
+            >
+                Continue to Rating →
+            </button>
+        </div>
+    </main>
+
+    <script src="data/demo-data.js"></script>
+    <script src="shared/prototype-api.js"></script>
+    <script src="shared/init.js"></script>
+    <script src="shared/utils.js"></script>
+    <script src="components/dev-mode.js"></script>
+
+    <script>
+        /**
+         * Page: 4.5 Trade Confirmation & Tracking
+         * Purpose: Reassure both sides the trade is actually moving.
+         */
+        window.initPage = async function () {
+            console.log('📄 4.5 Trade Confirmation & Tracking loaded');
+            await render();
+        };
+
+        async function render() {
+            const trade = await window.PrototypeAPI.getTrade();
+            const stages = await window.PrototypeAPI.getTrackingStages();
+            const idx = trade.trackingStageIndex;
+
+            const label = idx < 0 ? 'Awaiting shipment' : stages[idx];
+            document.getElementById('tracking-status-label').textContent = `Status: ${label}`;
+
+            const pct = idx < 0 ? 0 : ((idx + 1) / stages.length) * 100;
+            document.getElementById('tracking-progress-fill').style.width = `${pct}%`;
+
+            const delivered = idx === stages.length - 1;
+            document.getElementById('tracking-delivered-actions').classList.toggle('hidden', !delivered);
+            document.getElementById('tracking-simulate-update-btn').classList.toggle('hidden', delivered);
+        }
+
+        async function handleSimulateUpdate() {
+            console.log('🚚 Simulating carrier update');
+            await window.PrototypeAPI.advanceTracking();
+            await render();
+        }
+    </script>
+</body>
+</html>

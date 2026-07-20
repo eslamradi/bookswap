@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3.4 Create Listing (single) - bookswap</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { theme: { extend: {
+            colors: { bookswap: { 50: '#eff6ff', 100: '#dbeafe', 500: '#2563eb', 600: '#1d4ed8', 700: '#1e40af' } },
+            fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
+        } } }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="components/dev-mode.css">
+</head>
+<body class="min-h-screen bg-gray-50 font-sans">
+    <button id="dev-mode-toggle" class="dev-mode-toggle" title="Toggle Dev Mode (Ctrl+E)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+        </svg>
+        <span>Dev Mode: OFF</span>
+    </button>
+    <div id="dev-mode-tooltip" class="dev-mode-tooltip" style="display: none;"></div>
+
+    <header class="bg-white border-b border-gray-200 px-4 py-3">
+        <div class="max-w-lg mx-auto">
+            <a href="#" onclick="history.back(); return false;" class="text-sm text-gray-500">← back</a>
+        </div>
+    </header>
+
+    <main class="max-w-lg mx-auto px-4 py-6">
+        <div id="create-listing-context" data-object-id="create-listing-context" class="bg-white border border-gray-200 rounded-lg p-3 flex items-center gap-3 mb-6">
+            <div class="w-10 h-14 bg-gray-100 rounded flex items-center justify-center text-xs text-gray-400 flex-shrink-0">cover</div>
+            <div>
+                <p class="text-xs text-gray-500">Offering in trade for:</p>
+                <p id="create-listing-target-title" class="font-medium text-gray-900"></p>
+            </div>
+        </div>
+
+        <p class="text-sm text-gray-600 mb-2">
+            Scan your book's barcode, or enter the ISBN (no camera in this prototype — try 9780451524935):
+        </p>
+        <div class="flex gap-2 mb-4">
+            <input
+                type="text"
+                id="create-listing-isbn-input"
+                data-object-id="create-listing-isbn-input"
+                placeholder="Enter ISBN"
+                class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-bookswap-500 focus:border-transparent"
+            />
+            <button
+                id="create-listing-scan-btn"
+                data-object-id="create-listing-scan-btn"
+                onclick="handleScan()"
+                class="px-4 py-2 bg-bookswap-600 text-white rounded-lg font-medium hover:bg-bookswap-700 transition-colors"
+            >
+                Add
+            </button>
+        </div>
+
+        <div id="create-listing-book-card" data-object-id="create-listing-book-card" class="hidden bg-white border border-gray-200 rounded-lg p-3 mb-6">
+            <p id="create-listing-book-title" class="font-medium text-gray-900"></p>
+            <p id="create-listing-book-author" class="text-sm text-gray-500 mb-2"></p>
+            <select id="create-listing-condition" data-object-id="create-listing-condition" class="text-sm border border-gray-300 rounded px-2 py-1">
+                <option value="Good">Good</option>
+                <option value="Fair">Fair</option>
+                <option value="Worn">Worn</option>
+            </select>
+        </div>
+
+        <button
+            id="create-listing-send-btn"
+            data-object-id="create-listing-send-btn"
+            onclick="handleSend()"
+            disabled
+            class="w-full py-3 bg-bookswap-600 text-white rounded-lg font-semibold hover:bg-bookswap-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+            Send trade request
+        </button>
+
+        <div id="create-listing-sent-confirmation" data-object-id="create-listing-sent-confirmation" class="hidden text-center py-8">
+            <p class="text-xl font-bold text-gray-900 mb-2">✓ Request sent!</p>
+            <p class="text-sm text-gray-500">Waiting for a response.</p>
+        </div>
+    </main>
+
+    <script src="data/demo-data.js"></script>
+    <script src="shared/prototype-api.js"></script>
+    <script src="shared/init.js"></script>
+    <script src="shared/utils.js"></script>
+    <script src="components/dev-mode.js"></script>
+
+    <script>
+        /**
+         * Page: 3.4 Create Listing (single)
+         * Purpose: Let Maya offer one of her own books, completing the swap request.
+         */
+        let currentListingId = '';
+        let offeredBook = null;
+
+        window.initPage = async function () {
+            console.log('📄 3.4 Create Listing (single) loaded');
+            const params = new URLSearchParams(window.location.search);
+            currentListingId = params.get('listingId');
+
+            if (currentListingId) {
+                const listing = await window.PrototypeAPI.getListing(currentListingId);
+                if (listing) {
+                    document.getElementById('create-listing-target-title').textContent = `${listing.title} by ${listing.author}`;
+                }
+            }
+        };
+
+        async function handleScan() {
+            const input = document.getElementById('create-listing-isbn-input');
+            const isbn = input.value.trim();
+            if (!isbn) return;
+
+            const book = await window.PrototypeAPI.lookupIsbn(isbn);
+            if (!book) {
+                console.warn('⚠️ ISBN not found:', isbn);
+                return;
+            }
+
+            offeredBook = { isbn: book.isbn, title: book.title, author: book.author, condition: 'Good' };
+
+            document.getElementById('create-listing-book-title').textContent = book.title;
+            document.getElementById('create-listing-book-author').textContent = book.author;
+            document.getElementById('create-listing-book-card').classList.remove('hidden');
+            document.getElementById('create-listing-send-btn').disabled = false;
+        }
+
+        async function handleSend() {
+            const condition = document.getElementById('create-listing-condition').value;
+            offeredBook.condition = condition;
+
+            console.log('📤 Sending trade request:', offeredBook);
+            await window.PrototypeAPI.sendTradeRequest(currentListingId, offeredBook);
+
+            document.getElementById('create-listing-send-btn').classList.add('hidden');
+            document.getElementById('create-listing-sent-confirmation').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

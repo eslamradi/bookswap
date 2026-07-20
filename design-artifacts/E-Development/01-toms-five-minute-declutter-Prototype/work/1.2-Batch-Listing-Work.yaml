@@ -1,0 +1,51 @@
+page: "1.2 Batch Listing"
+scenario: "01-toms-five-minute-declutter"
+spec: "../../C-UX-Scenarios/01-toms-five-minute-declutter/1.2-batch-listing/1.2-batch-listing.md"
+created: 2026-07-13
+device_compatibility: "Fully Responsive (375px-1920px+)"
+design_fidelity: "Generic Gray Model"
+
+prototype_limitation: >
+  No real camera/barcode scanning in a static browser prototype. Simulated via
+  the spec's own manual-ISBN fallback (select/type an ISBN from the demo
+  catalog); photo capture simulated via a toggle rather than a real camera.
+
+objects:
+  - header live count ("N books added")
+  - ISBN entry (simulated scan)
+  - scan-failed state
+  - book queue cards (thumbnail, title, author, condition selector, photo toggle, remove)
+  - bulk submit button (sticky, live count)
+  - submitting state
+  - submit-error state (queue preserved)
+
+sections:
+  - id: 1
+    name: "Header, ISBN Entry & Scan-Failed State"
+    estimate_minutes: 15
+    status: complete
+    completed_date: 2026-07-13
+    actual_minutes: 15
+    issues: none
+
+  - id: 2
+    name: "Book Queue Cards"
+    estimate_minutes: 25
+    status: complete
+    completed_date: 2026-07-13
+    actual_minutes: 25
+    issues: none
+
+  - id: 3
+    name: "Bulk Submit, Loading/Error States & Persistence"
+    estimate_minutes: 20
+    status: complete
+    completed_date: 2026-07-13
+    actual_minutes: 20
+    issues: none
+
+total_estimate_minutes: 60
+built_autonomously: true
+approved_by: Radi
+approved_date: 2026-07-13
+note: "Built without per-section approval gates per explicit user instruction."

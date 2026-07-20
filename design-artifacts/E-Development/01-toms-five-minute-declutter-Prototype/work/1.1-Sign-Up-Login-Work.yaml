@@ -1,0 +1,55 @@
+page: "1.1 Sign Up/Login"
+scenario: "01-toms-five-minute-declutter"
+spec: "../../C-UX-Scenarios/01-toms-five-minute-declutter/1.1-sign-up-login/1.1-sign-up-login.md"
+created: 2026-07-12
+device_compatibility: "Fully Responsive (375px-1920px+)"
+design_fidelity: "Generic Gray Model"
+
+objects:
+  - bookswap logo
+  - headline ("Get your books gone in minutes")
+  - continue-with-google button
+  - continue-with-apple button
+  - divider ("or")
+  - email input field
+  - email continue button
+  - loading state (button-level spinner)
+  - error state (inline message)
+
+sections:
+  - id: 1
+    name: "Page Shell & Value Headline"
+    objects:
+      - bookswap logo
+      - headline
+      - responsive layout container
+    estimate_minutes: 10
+    status: complete
+    completed_date: 2026-07-13
+    actual_minutes: 10
+    issues: "None — user's initial 'no signup' comment was scope confusion (Section 2 not yet built), not a defect."
+    improvements: none
+
+  - id: 2
+    name: "Authentication Actions & States"
+    objects:
+      - continue-with-google button
+      - continue-with-apple button
+      - divider
+      - email input field
+      - email continue button
+      - loading state
+      - error state
+    estimate_minutes: 20
+    status: complete
+    completed_date: 2026-07-13
+    actual_minutes: 20
+    issues: none
+    improvements: none
+    notes: >
+      Success (any method) sets demo-data.json currentUser.authenticated = true
+      and navigates to 1.2 Batch Listing.
+
+total_estimate_minutes: 30
+approved_by: Radi
+approved_date: 2026-07-12
