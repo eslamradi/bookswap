@@ -8,10 +8,12 @@ type Status = "pending" | "accepted" | "declined" | "completed";
 
 export function TradeActions({
   tradeId,
+  listingId,
   status,
   isOwner,
 }: {
   tradeId: string;
+  listingId: string;
   status: Status;
   isOwner: boolean;
 }) {
@@ -26,6 +28,28 @@ export function TradeActions({
       .from("trades")
       .update({ status: newStatus })
       .eq("id", tradeId);
+
+    if (!error && newStatus === "accepted") {
+      // The listing is no longer available once a trade is accepted — this
+      // is what actually removes it from Browse/Search and disables
+      // "Request this book" for everyone else (both already filter/check on
+      // listings.status, not on trade state, which is why this was missing
+      // before: accepting a trade never touched the listing itself).
+      await supabase
+        .from("listings")
+        .update({ status: "claimed" })
+        .eq("id", listingId);
+
+      // Any other pending offers on the same listing are now moot — the
+      // book is going to someone else. Auto-decline them rather than
+      // leaving them stuck showing "waiting for the owner to respond".
+      await supabase
+        .from("trades")
+        .update({ status: "declined" })
+        .eq("listing_id", listingId)
+        .eq("status", "pending")
+        .neq("id", tradeId);
+    }
 
     if (!error) {
       setCurrent(newStatus);

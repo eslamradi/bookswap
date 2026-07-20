@@ -97,6 +97,7 @@ export default async function TradePage({
 
         <TradeActions
           tradeId={trade.id}
+          listingId={trade.listing_id}
           status={trade.status}
           isOwner={isOwner}
         />

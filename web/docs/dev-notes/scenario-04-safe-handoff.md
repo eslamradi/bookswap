@@ -58,3 +58,9 @@
 **Files removed:** `src/app/trades/[id]/shipping/`, `src/app/trades/[id]/tracking/`, `src/components/trades/shipping-actions.tsx`, `src/components/trades/tracking-actions.tsx`.
 **Files added:** `src/app/trades/[id]/handoff/page.tsx`, `src/components/trades/handoff-actions.tsx`.
 **Files changed:** `src/components/trades/checkout-actions.tsx` (redirect target).
+
+## Bug Fix (2026-07-20): accepted listings weren't marked unavailable
+
+Accepting a trade only ever updated `trades.status` — never touched the underlying `listings.status`. Since Browse/Search/Book Detail all gate on `listings.status = 'live'`, an accepted-but-still-"live"-listing kept showing up as available, and other users could send competing offers on a book that was already spoken for.
+
+**Fix (`src/components/trades/trade-actions.tsx`):** accepting a trade now also sets the target listing's `status` to `'claimed'`, and auto-declines any other still-pending trades on that same listing (they're moot once one offer is accepted). No schema change — `'claimed'` was already a valid `listings.status` value from the original migration, just never wired up.
