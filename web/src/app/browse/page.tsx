@@ -1,13 +1,31 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { GENRES, type Genre } from "@/lib/books/genres";
 
-export default async function BrowsePage() {
+function isGenre(value: string): value is Genre {
+  return (GENRES as readonly string[]).includes(value);
+}
+
+export default async function BrowsePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ genre?: string }>;
+}) {
+  const { genre: rawGenre } = await searchParams;
+  const activeGenre = rawGenre && isGenre(rawGenre) ? rawGenre : null;
+
   const supabase = await createClient();
 
-  const { data: listings } = await supabase
+  let query = supabase
     .from("listings")
-    .select("id, title, author, condition, cover_url, photo_path")
-    .eq("status", "live")
+    .select("id, title, author, condition, genre, cover_url, photo_path")
+    .eq("status", "live");
+
+  if (activeGenre) {
+    query = query.eq("genre", activeGenre);
+  }
+
+  const { data: listings } = await query
     .order("created_at", { ascending: false })
     .limit(60);
 
@@ -34,9 +52,43 @@ export default async function BrowsePage() {
       </header>
 
       <div className="mx-auto max-w-3xl px-4 py-6">
-        <h1 className="mb-6 text-lg font-semibold text-gray-900">
+        <h1 className="mb-4 text-lg font-semibold text-gray-900">
           Browse books
         </h1>
+
+        <div
+          id="browse-genre-filter"
+          data-object-id="browse-genre-filter"
+          className="mb-6 flex flex-wrap gap-2"
+        >
+          <Link
+            id="browse-genre-all"
+            data-object-id="browse-genre-all"
+            href="/browse"
+            className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+              !activeGenre
+                ? "border-bookswap-600 bg-bookswap-600 text-white"
+                : "border-gray-300 bg-white text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            All
+          </Link>
+          {GENRES.map((g) => (
+            <Link
+              key={g}
+              id={`browse-genre-${g}`}
+              data-object-id={`browse-genre-${g}`}
+              href={`/browse?genre=${encodeURIComponent(g)}`}
+              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                activeGenre === g
+                  ? "border-bookswap-600 bg-bookswap-600 text-white"
+                  : "border-gray-300 bg-white text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              {g}
+            </Link>
+          ))}
+        </div>
 
         <div
           id="browse-grid"
@@ -70,7 +122,9 @@ export default async function BrowsePage() {
                 <p className="truncate text-xs text-gray-500">
                   {item.author}
                 </p>
-                <p className="mt-1 text-xs text-gray-400">{item.condition}</p>
+                <p className="mt-1 text-xs text-gray-400">
+                  {item.genre} · {item.condition}
+                </p>
               </div>
             </Link>
           ))}
@@ -78,7 +132,9 @@ export default async function BrowsePage() {
 
         {items.length === 0 && (
           <p className="py-16 text-center text-sm text-gray-400">
-            No books listed yet.
+            {activeGenre
+              ? `No ${activeGenre} books listed yet.`
+              : "No books listed yet."}
           </p>
         )}
       </div>

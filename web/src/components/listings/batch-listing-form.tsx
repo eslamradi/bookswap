@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { lookupIsbn } from "@/lib/books/lookup";
+import { GENRES, type Genre } from "@/lib/books/genres";
 
 type Condition = "Good" | "Fair" | "Worn";
 
@@ -14,6 +15,7 @@ type QueueItem = {
   author: string;
   coverUrl: string | null;
   condition: Condition;
+  genre: Genre;
   photoFile: File | null;
   photoFileName: string | null;
 };
@@ -55,6 +57,9 @@ export function BatchListingForm({ userId }: { userId: string }) {
       setQueue(
         persisted.map((item) => ({
           ...item,
+          // Older queued items saved before genre existed — default rather
+          // than crash on a missing field.
+          genre: item.genre ?? "Other",
           photoFile: null,
           photoFileName: null,
         })),
@@ -77,6 +82,7 @@ export function BatchListingForm({ userId }: { userId: string }) {
       author: item.author,
       coverUrl: item.coverUrl,
       condition: item.condition,
+      genre: item.genre,
     }));
     localStorage.setItem(storageKey(userId), JSON.stringify(persisted));
   }, [queue, userId]);
@@ -107,6 +113,7 @@ export function BatchListingForm({ userId }: { userId: string }) {
           author: result.author,
           coverUrl: result.coverUrl,
           condition: "Good",
+          genre: "Other",
           photoFile: null,
           photoFileName: null,
         },
@@ -124,6 +131,12 @@ export function BatchListingForm({ userId }: { userId: string }) {
       (prev ?? []).map((item) =>
         item.id === id ? { ...item, condition } : item,
       ),
+    );
+  }
+
+  function updateGenre(id: string, genre: Genre) {
+    setQueue((prev) =>
+      (prev ?? []).map((item) => (item.id === id ? { ...item, genre } : item)),
     );
   }
 
@@ -171,6 +184,7 @@ export function BatchListingForm({ userId }: { userId: string }) {
           cover_url: item.coverUrl,
           photo_path: photoPath,
           condition: item.condition,
+          genre: item.genre,
           status: "live",
         });
       }
@@ -299,6 +313,22 @@ export function BatchListingForm({ userId }: { userId: string }) {
                   {CONDITIONS.map((c) => (
                     <option key={c} value={c}>
                       {c}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  id={`batch-listing-genre-${item.id}`}
+                  data-object-id={`batch-listing-genre-${item.id}`}
+                  value={item.genre}
+                  onChange={(e) =>
+                    updateGenre(item.id, e.target.value as Genre)
+                  }
+                  className="rounded border border-gray-300 px-2 py-1 text-sm"
+                >
+                  {GENRES.map((g) => (
+                    <option key={g} value={g}>
+                      {g}
                     </option>
                   ))}
                 </select>

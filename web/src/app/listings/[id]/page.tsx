@@ -17,7 +17,7 @@ export default async function ListingDetailPage({
   const { data: listing } = await supabase
     .from("listings")
     .select(
-      "id, title, author, condition, description, cover_url, photo_path, owner_id, status",
+      "id, title, author, condition, genre, description, cover_url, photo_path, owner_id, status",
     )
     .eq("id", id)
     .single();
@@ -81,7 +81,7 @@ export default async function ListingDetailPage({
           data-object-id="listing-detail-condition"
           className="mb-4 text-sm font-medium text-gray-700"
         >
-          Condition: {listing.condition}
+          {listing.genre} · Condition: {listing.condition}
         </p>
 
         {listing.description && (

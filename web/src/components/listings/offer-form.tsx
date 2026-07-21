@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { lookupIsbn, type BookLookupResult } from "@/lib/books/lookup";
+import { GENRES, type Genre } from "@/lib/books/genres";
 
 type Condition = "Good" | "Fair" | "Worn";
 const CONDITIONS: Condition[] = ["Good", "Fair", "Worn"];
@@ -21,6 +22,7 @@ export function OfferForm({
   const [isbnInput, setIsbnInput] = useState("");
   const [book, setBook] = useState<BookLookupResult | null>(null);
   const [condition, setCondition] = useState<Condition>("Good");
+  const [genre, setGenre] = useState<Genre>("Other");
   const [description, setDescription] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [scanning, setScanning] = useState(false);
@@ -79,6 +81,7 @@ export function OfferForm({
           cover_url: book.coverUrl,
           photo_path: photoPath,
           condition,
+          genre,
           description: description.trim() || null,
           status: "live",
           offered_for_listing_id: targetListingId,
@@ -202,6 +205,20 @@ export function OfferForm({
             {CONDITIONS.map((c) => (
               <option key={c} value={c}>
                 {c}
+              </option>
+            ))}
+          </select>
+
+          <select
+            id="create-listing-genre"
+            data-object-id="create-listing-genre"
+            value={genre}
+            onChange={(e) => setGenre(e.target.value as Genre)}
+            className="mb-3 rounded border border-gray-300 px-2 py-1 text-sm"
+          >
+            {GENRES.map((g) => (
+              <option key={g} value={g}>
+                {g}
               </option>
             ))}
           </select>
