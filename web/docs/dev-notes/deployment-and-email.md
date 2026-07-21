@@ -6,7 +6,9 @@
 - Also reachable at the Vercel-assigned URL: https://web-lilac-one-11.vercel.app
 - Vercel project: `radis/web`, linked via CLI (not GitHub-connected — deploys are manual `vercel --prod` from local files, not automatic on push)
 - Supabase env vars set in Vercel for all three environments (Development/Preview/Production)
-- Auth emails: custom SMTP via Resend, sender `hi@eslamradi.com` displaying as "bookswap", branded subject + HTML content
+- Auth emails: custom SMTP via **Brevo** (`smtp-relay.brevo.com:587`), sender `hi@eslamradi.com` displaying as "bookswap", branded subject + HTML content. (Started on Resend, which worked fine — switched to Brevo by preference, not because Resend was broken. One transient 500 on the first send right after switching, resolved on retry — likely just propagation.)
+- **Inbound mail for `hi@eslamradi.com`:** Cloudflare Email Routing catch-all on `eslamradi.com`, forwarding to Radi's real inbox (set up directly in the Cloudflare dashboard after API tokens repeatedly hit an "Authentication error" on the Email Routing endpoints specifically, despite verifying fine generally and having the right permission added — not root-caused, dashboard was faster than continuing to debug the token scope).
+- **Outbound as `hi@eslamradi.com` from Gmail:** set up via Gmail's "Send mail as" using Brevo's SMTP relay as the outgoing server (`smtp-relay.brevo.com`, **port 465 + SSL** — port 587 failed with a generic "couldn't finish setting up this account" error, 465/SSL worked). Verification email round-tripped through the Cloudflare catch-all above.
 
 ## Bugs found and fixed
 
