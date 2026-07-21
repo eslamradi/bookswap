@@ -99,10 +99,10 @@ export function MessageThread({
         <Link
           id="messaging-continue-btn"
           data-object-id="messaging-continue-btn"
-          href={`/trades/${tradeId}/checkout`}
+          href={`/trades/${tradeId}/handoff`}
           className="mt-3 block w-full text-center text-sm font-medium text-bookswap-600 hover:text-bookswap-700"
         >
-          Continue to Checkout →
+          Continue to Handoff →
         </Link>
       </div>
     </>
