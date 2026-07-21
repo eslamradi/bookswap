@@ -34,12 +34,48 @@ export function HandoffActions({
   const [confirmedMine, setConfirmedMine] = useState(
     isRequester ? confirmedByRequester : confirmedByOwner,
   );
-  // Not live-updated if the other party confirms while this page is open —
-  // a refresh picks up the latest state. No realtime subscription this pass.
-  const [confirmedTheirs] = useState(
+  const [confirmedTheirs, setConfirmedTheirs] = useState(
     isRequester ? confirmedByOwner : confirmedByRequester,
   );
   const [busy, setBusy] = useState(false);
+
+  // Live updates for the other participant's actions — picking a method or
+  // confirming the handoff — without needing a manual refresh. Setting
+  // state inside the subscription callback (not synchronously in the
+  // effect body) isn't the pattern react-hooks/set-state-in-effect warns
+  // about.
+  useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`trade-${tradeId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "trades",
+          filter: `id=eq.${tradeId}`,
+        },
+        (payload) => {
+          const updated = payload.new as {
+            exchange_method: ExchangeMethod;
+            handoff_confirmed_by_requester: boolean;
+            handoff_confirmed_by_owner: boolean;
+          };
+          setMethod((prev) => prev ?? updated.exchange_method);
+          setConfirmedTheirs(
+            isRequester
+              ? updated.handoff_confirmed_by_owner
+              : updated.handoff_confirmed_by_requester,
+          );
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [tradeId, isRequester]);
 
   // Persist the auto-applied preference to the trade so it sticks (and the
   // other participant sees it too) — a one-time sync on mount, not a loop.

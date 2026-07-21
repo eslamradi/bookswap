@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
@@ -23,6 +23,36 @@ export function MessageThread({
   const [messages, setMessages] = useState(initialMessages);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
+
+  // Live delivery of the other participant's messages — appending here (not
+  // a top-level setState) is an event-driven callback, not a render-time
+  // state derivation, so this isn't the pattern react-hooks/set-state-in-effect
+  // warns about.
+  useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`messages-${tradeId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `trade_id=eq.${tradeId}`,
+        },
+        (payload) => {
+          const incoming = payload.new as Message;
+          setMessages((prev) =>
+            prev.some((m) => m.id === incoming.id) ? prev : [...prev, incoming],
+          );
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [tradeId]);
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
