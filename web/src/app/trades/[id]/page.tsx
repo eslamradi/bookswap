@@ -22,7 +22,7 @@ export default async function TradePage({
   const { data: trade } = await supabase
     .from("trades")
     .select(
-      "id, listing_id, offered_listing_id, requester_id, owner_id, offer_type, status",
+      "id, listing_id, offered_listing_id, requester_id, owner_id, offer_type, price, status",
     )
     .eq("id", id)
     .single();
@@ -87,9 +87,11 @@ export default async function TradePage({
         >
           <p className="mb-1 text-xs text-gray-500">Offer:</p>
           <p id="offer-terms-text" className="text-sm font-medium text-gray-900">
-            {trade.offer_type === "claim"
-              ? "Straight claim (no payment)"
-              : "Book-for-book exchange"}
+            {trade.offer_type === "sale"
+              ? `For sale — $${trade.price}`
+              : trade.offer_type === "claim"
+                ? "Straight claim (no payment)"
+                : "Book-for-book exchange"}
           </p>
         </div>
 

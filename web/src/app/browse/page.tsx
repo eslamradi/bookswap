@@ -18,7 +18,9 @@ export default async function BrowsePage({
 
   let query = supabase
     .from("listings")
-    .select("id, title, author, condition, genre, cover_url, photo_path")
+    .select(
+      "id, title, author, condition, genre, listing_type, price, cover_url, photo_path",
+    )
     .eq("status", "live");
 
   if (activeGenre) {
@@ -103,7 +105,7 @@ export default async function BrowsePage({
               href={`/listings/${item.id}`}
               className="block overflow-hidden rounded-lg border border-gray-200 bg-white transition-shadow hover:shadow-md"
             >
-              <div className="flex aspect-[2/3] items-center justify-center bg-gray-100 text-xs text-gray-400">
+              <div className="relative flex aspect-[2/3] items-center justify-center bg-gray-100 text-xs text-gray-400">
                 {thumbnails[i] ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -113,6 +115,11 @@ export default async function BrowsePage({
                   />
                 ) : (
                   "cover"
+                )}
+                {item.listing_type === "sale" && (
+                  <span className="absolute right-1 top-1 rounded-full bg-bookswap-600 px-2 py-0.5 text-xs font-semibold text-white">
+                    ${item.price}
+                  </span>
                 )}
               </div>
               <div className="p-2">

@@ -21,7 +21,7 @@ export default async function HandoffPage({
   const { data: trade } = await supabase
     .from("trades")
     .select(
-      "id, requester_id, owner_id, exchange_method, handoff_confirmed_by_requester, handoff_confirmed_by_owner",
+      "id, requester_id, owner_id, exchange_method, offer_type, price, handoff_confirmed_by_requester, handoff_confirmed_by_owner",
     )
     .eq("id", id)
     .single();
@@ -52,6 +52,7 @@ export default async function HandoffPage({
           isRequester={isRequester}
           confirmedByRequester={trade.handoff_confirmed_by_requester}
           confirmedByOwner={trade.handoff_confirmed_by_owner}
+          price={trade.offer_type === "sale" ? trade.price : null}
         />
       </div>
     </main>

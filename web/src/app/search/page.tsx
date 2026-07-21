@@ -25,7 +25,9 @@ export default async function SearchPage({
     safeQuery.length > 0
       ? await supabase
           .from("listings")
-          .select("id, title, author, condition, genre, cover_url, photo_path")
+          .select(
+            "id, title, author, condition, genre, listing_type, price, cover_url, photo_path",
+          )
           .eq("status", "live")
           .or(
             `title.ilike.%${safeQuery}%,author.ilike.%${safeQuery}%,isbn.eq.${safeQuery}`,
@@ -91,6 +93,11 @@ export default async function SearchPage({
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium text-gray-900">
                     {item.title}
+                    {item.listing_type === "sale" && (
+                      <span className="ml-2 text-sm font-semibold text-bookswap-600">
+                        ${item.price}
+                      </span>
+                    )}
                   </p>
                   <p className="truncate text-sm text-gray-500">
                     {item.author} · {item.genre} · {item.condition}

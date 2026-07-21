@@ -17,7 +17,7 @@ export default async function ListingDetailPage({
   const { data: listing } = await supabase
     .from("listings")
     .select(
-      "id, title, author, condition, genre, description, cover_url, photo_path, owner_id, status",
+      "id, title, author, condition, genre, listing_type, price, description, cover_url, photo_path, owner_id, status",
     )
     .eq("id", id)
     .single();
@@ -76,6 +76,16 @@ export default async function ListingDetailPage({
         >
           {listing.author}
         </p>
+        {listing.listing_type === "sale" && (
+          <p
+            id="listing-detail-price"
+            data-object-id="listing-detail-price"
+            className="mb-2 text-2xl font-bold text-bookswap-600"
+          >
+            ${listing.price}
+          </p>
+        )}
+
         <p
           id="listing-detail-condition"
           data-object-id="listing-detail-condition"
@@ -128,10 +138,16 @@ export default async function ListingDetailPage({
           <Link
             id="listing-detail-request-btn"
             data-object-id="listing-detail-request-btn"
-            href={`/listings/${listing.id}/offer`}
+            href={
+              listing.listing_type === "sale"
+                ? `/listings/${listing.id}/buy`
+                : `/listings/${listing.id}/offer`
+            }
             className="block w-full rounded-lg bg-bookswap-600 py-3 text-center font-semibold text-white transition-colors hover:bg-bookswap-700"
           >
-            Request this book
+            {listing.listing_type === "sale"
+              ? `Buy this book — $${listing.price}`
+              : "Request this book"}
           </Link>
         ) : (
           <p className="text-center text-sm text-gray-400">

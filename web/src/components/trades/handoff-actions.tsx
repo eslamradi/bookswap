@@ -14,6 +14,7 @@ export function HandoffActions({
   isRequester,
   confirmedByRequester,
   confirmedByOwner,
+  price,
 }: {
   tradeId: string;
   exchangeMethod: ExchangeMethod;
@@ -21,6 +22,7 @@ export function HandoffActions({
   isRequester: boolean;
   confirmedByRequester: boolean;
   confirmedByOwner: boolean;
+  price: number | null;
 }) {
   // No trade-level method set yet, but this viewer has a saved preference —
   // apply it immediately rather than making them choose again. Still
@@ -131,9 +133,21 @@ export function HandoffActions({
     if (!error) setConfirmedMine(true);
   }
 
+  const paymentReminder = price != null && (
+    <p
+      id="handoff-payment-reminder"
+      data-object-id="handoff-payment-reminder"
+      className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800"
+    >
+      This is a sale — bring cash, or send ${price} via Venmo/PayPal before
+      you meet. bookswap doesn&apos;t process payment.
+    </p>
+  );
+
   if (!method) {
     return (
       <div id="handoff-method-choice" data-object-id="handoff-method-choice">
+        {paymentReminder}
         <p className="mb-4 text-sm text-gray-600">
           How will you exchange the book?
         </p>
@@ -172,6 +186,7 @@ export function HandoffActions({
 
   return (
     <div id="handoff-guidance" data-object-id="handoff-guidance">
+      {paymentReminder}
       {showPreferenceHint && (
         <p
           id="handoff-preference-applied-hint"

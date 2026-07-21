@@ -7,6 +7,7 @@ import { lookupIsbn } from "@/lib/books/lookup";
 import { GENRES, type Genre } from "@/lib/books/genres";
 
 type Condition = "Good" | "Fair" | "Worn";
+type ListingType = "swap" | "sale";
 
 type QueueItem = {
   id: string;
@@ -16,6 +17,8 @@ type QueueItem = {
   coverUrl: string | null;
   condition: Condition;
   genre: Genre;
+  listingType: ListingType;
+  price: string;
   photoFile: File | null;
   photoFileName: string | null;
 };
@@ -57,9 +60,11 @@ export function BatchListingForm({ userId }: { userId: string }) {
       setQueue(
         persisted.map((item) => ({
           ...item,
-          // Older queued items saved before genre existed — default rather
-          // than crash on a missing field.
+          // Older queued items saved before genre/selling existed — default
+          // rather than crash on a missing field.
           genre: item.genre ?? "Other",
+          listingType: item.listingType ?? "swap",
+          price: item.price ?? "",
           photoFile: null,
           photoFileName: null,
         })),
@@ -83,6 +88,8 @@ export function BatchListingForm({ userId }: { userId: string }) {
       coverUrl: item.coverUrl,
       condition: item.condition,
       genre: item.genre,
+      listingType: item.listingType,
+      price: item.price,
     }));
     localStorage.setItem(storageKey(userId), JSON.stringify(persisted));
   }, [queue, userId]);
@@ -114,6 +121,8 @@ export function BatchListingForm({ userId }: { userId: string }) {
           coverUrl: result.coverUrl,
           condition: "Good",
           genre: "Other",
+          listingType: "swap",
+          price: "",
           photoFile: null,
           photoFileName: null,
         },
@@ -140,6 +149,28 @@ export function BatchListingForm({ userId }: { userId: string }) {
     );
   }
 
+  function updateListingType(id: string, listingType: ListingType) {
+    setQueue((prev) =>
+      (prev ?? []).map((item) =>
+        item.id === id
+          ? { ...item, listingType, price: listingType === "swap" ? "" : item.price }
+          : item,
+      ),
+    );
+  }
+
+  function updatePrice(id: string, price: string) {
+    setQueue((prev) =>
+      (prev ?? []).map((item) => (item.id === id ? { ...item, price } : item)),
+    );
+  }
+
+  function isPriceValid(item: QueueItem): boolean {
+    if (item.listingType === "swap") return true;
+    const parsed = Number(item.price);
+    return item.price.trim() !== "" && Number.isFinite(parsed) && parsed > 0;
+  }
+
   function attachPhoto(id: string, file: File | null) {
     setQueue((prev) =>
       (prev ?? []).map((item) =>
@@ -156,6 +187,10 @@ export function BatchListingForm({ userId }: { userId: string }) {
 
   async function handleSubmit() {
     if (items.length === 0) return;
+    if (items.some((item) => !isPriceValid(item))) {
+      setSubmitError("Enter a valid price for every book marked For Sale.");
+      return;
+    }
     setSubmitError(null);
     setSubmitting(true);
 
@@ -185,6 +220,8 @@ export function BatchListingForm({ userId }: { userId: string }) {
           photo_path: photoPath,
           condition: item.condition,
           genre: item.genre,
+          listing_type: item.listingType,
+          price: item.listingType === "sale" ? Number(item.price) : null,
           status: "live",
         });
       }
@@ -333,6 +370,38 @@ export function BatchListingForm({ userId }: { userId: string }) {
                   ))}
                 </select>
 
+                <select
+                  id={`batch-listing-type-${item.id}`}
+                  data-object-id={`batch-listing-type-${item.id}`}
+                  value={item.listingType}
+                  onChange={(e) =>
+                    updateListingType(item.id, e.target.value as ListingType)
+                  }
+                  className="rounded border border-gray-300 px-2 py-1 text-sm"
+                >
+                  <option value="swap">Swap</option>
+                  <option value="sale">For Sale</option>
+                </select>
+
+                {item.listingType === "sale" && (
+                  <input
+                    id={`batch-listing-price-${item.id}`}
+                    data-object-id={`batch-listing-price-${item.id}`}
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    inputMode="decimal"
+                    value={item.price}
+                    onChange={(e) => updatePrice(item.id, e.target.value)}
+                    placeholder="Price"
+                    className={`w-20 rounded border px-2 py-1 text-sm ${
+                      isPriceValid(item)
+                        ? "border-gray-300"
+                        : "border-red-400"
+                    }`}
+                  />
+                )}
+
                 <label
                   id={`batch-listing-photo-${item.id}`}
                   data-object-id={`batch-listing-photo-${item.id}`}
@@ -393,7 +462,11 @@ export function BatchListingForm({ userId }: { userId: string }) {
             id="batch-listing-submit-btn"
             data-object-id="batch-listing-submit-btn"
             type="button"
-            disabled={items.length === 0 || submitting}
+            disabled={
+              items.length === 0 ||
+              submitting ||
+              items.some((item) => !isPriceValid(item))
+            }
             onClick={handleSubmit}
             className="w-full rounded-lg bg-bookswap-600 py-3 font-semibold text-white transition-colors hover:bg-bookswap-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
