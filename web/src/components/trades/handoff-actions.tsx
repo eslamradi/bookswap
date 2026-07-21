@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { ensureRealtimeAuth } from "@/lib/supabase/realtime-auth";
 
 type ExchangeMethod = "meetup" | "self_arranged" | null;
 
@@ -45,35 +46,42 @@ export function HandoffActions({
   // effect body) isn't the pattern react-hooks/set-state-in-effect warns
   // about.
   useEffect(() => {
+    let cancelled = false;
     const supabase = createClient();
-    const channel = supabase
-      .channel(`trade-${tradeId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "trades",
-          filter: `id=eq.${tradeId}`,
-        },
-        (payload) => {
-          const updated = payload.new as {
-            exchange_method: ExchangeMethod;
-            handoff_confirmed_by_requester: boolean;
-            handoff_confirmed_by_owner: boolean;
-          };
-          setMethod((prev) => prev ?? updated.exchange_method);
-          setConfirmedTheirs(
-            isRequester
-              ? updated.handoff_confirmed_by_owner
-              : updated.handoff_confirmed_by_requester,
-          );
-        },
-      )
-      .subscribe();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    ensureRealtimeAuth(supabase).then(() => {
+      if (cancelled) return;
+      channel = supabase
+        .channel(`trade-${tradeId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "trades",
+            filter: `id=eq.${tradeId}`,
+          },
+          (payload) => {
+            const updated = payload.new as {
+              exchange_method: ExchangeMethod;
+              handoff_confirmed_by_requester: boolean;
+              handoff_confirmed_by_owner: boolean;
+            };
+            setMethod((prev) => prev ?? updated.exchange_method);
+            setConfirmedTheirs(
+              isRequester
+                ? updated.handoff_confirmed_by_owner
+                : updated.handoff_confirmed_by_requester,
+            );
+          },
+        )
+        .subscribe();
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      cancelled = true;
+      if (channel) supabase.removeChannel(channel);
     };
   }, [tradeId, isRequester]);
 

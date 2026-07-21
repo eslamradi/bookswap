@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { ensureRealtimeAuth } from "@/lib/supabase/realtime-auth";
 
 type Message = {
   id: string;
@@ -29,28 +30,35 @@ export function MessageThread({
   // state derivation, so this isn't the pattern react-hooks/set-state-in-effect
   // warns about.
   useEffect(() => {
+    let cancelled = false;
     const supabase = createClient();
-    const channel = supabase
-      .channel(`messages-${tradeId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-          filter: `trade_id=eq.${tradeId}`,
-        },
-        (payload) => {
-          const incoming = payload.new as Message;
-          setMessages((prev) =>
-            prev.some((m) => m.id === incoming.id) ? prev : [...prev, incoming],
-          );
-        },
-      )
-      .subscribe();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    ensureRealtimeAuth(supabase).then(() => {
+      if (cancelled) return;
+      channel = supabase
+        .channel(`messages-${tradeId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "messages",
+            filter: `trade_id=eq.${tradeId}`,
+          },
+          (payload) => {
+            const incoming = payload.new as Message;
+            setMessages((prev) =>
+              prev.some((m) => m.id === incoming.id) ? prev : [...prev, incoming],
+            );
+          },
+        )
+        .subscribe();
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      cancelled = true;
+      if (channel) supabase.removeChannel(channel);
     };
   }, [tradeId]);
 
