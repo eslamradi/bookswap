@@ -175,10 +175,20 @@ export function BatchListingForm({ userId }: { userId: string }) {
         });
       }
 
-      const { error: insertError } = await supabase
+      const { data: inserted, error: insertError } = await supabase
         .from("listings")
-        .insert(rows);
+        .insert(rows)
+        .select("id");
       if (insertError) throw insertError;
+
+      // Fire-and-forget: don't block navigation on alert emails going out.
+      for (const row of inserted ?? []) {
+        fetch("/api/alerts/check", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ listingId: row.id }),
+        }).catch(() => {});
+      }
 
       localStorage.removeItem(storageKey(userId));
       router.push("/listings");

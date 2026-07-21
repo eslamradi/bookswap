@@ -87,6 +87,13 @@ export function OfferForm({
         .single();
       if (insertError) throw insertError;
 
+      // Fire-and-forget: don't block the trade creation below on alert emails.
+      fetch("/api/alerts/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ listingId: newListing.id }),
+      }).catch(() => {});
+
       const { data: trade, error: tradeError } = await supabase
         .from("trades")
         .insert({

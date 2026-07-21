@@ -20,6 +20,25 @@ export default async function NotificationsPage() {
 
   const items = alerts ?? [];
 
+  const { data: matches } =
+    items.length > 0
+      ? await supabase
+          .from("alert_notifications")
+          .select("id, alert_id, created_at, listings(id, title, author)")
+          .in(
+            "alert_id",
+            items.map((alert) => alert.id),
+          )
+          .order("created_at", { ascending: false })
+      : { data: [] };
+
+  const matchesByAlert = new Map<string, typeof matches>();
+  for (const match of matches ?? []) {
+    const existing = matchesByAlert.get(match.alert_id) ?? [];
+    existing.push(match);
+    matchesByAlert.set(match.alert_id, existing);
+  }
+
   return (
     <main className="min-h-screen bg-gray-50">
       <header className="border-b border-gray-200 bg-white px-4 py-3">
@@ -36,7 +55,7 @@ export default async function NotificationsPage() {
             className="mb-6 text-center"
           >
             <p className="text-xl font-bold text-gray-900">
-              ✓ We&apos;ll notify you
+              ✓ We&apos;ll email you
             </p>
           </div>
         ) : (
@@ -61,9 +80,32 @@ export default async function NotificationsPage() {
               >
                 &quot;{alert.query}&quot;
               </p>
-              <p className="text-xs text-gray-500">
-                Notify via: Push + Email
-              </p>
+              <p className="mb-2 text-xs text-gray-500">Notify via: Email</p>
+
+              {(matchesByAlert.get(alert.id) ?? []).length > 0 ? (
+                <div className="space-y-1 border-t border-gray-100 pt-2">
+                  {(matchesByAlert.get(alert.id) ?? []).map((match) => {
+                    const listing = Array.isArray(match.listings)
+                      ? match.listings[0]
+                      : match.listings;
+                    if (!listing) return null;
+                    return (
+                      <Link
+                        key={match.id}
+                        href={`/listings/${listing.id}`}
+                        className="block text-sm text-bookswap-600 hover:underline"
+                      >
+                        Found: {listing.title} by {listing.author} →
+                      </Link>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-xs text-gray-400">
+                  No matches yet — we&apos;ll email you the moment one shows
+                  up.
+                </p>
+              )}
             </div>
           ))}
         </div>
