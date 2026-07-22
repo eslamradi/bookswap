@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { AppHeader } from "@/components/layout/app-header";
 
 export default async function ListingDetailPage({
   params,
@@ -42,11 +43,7 @@ export default async function ListingDetailPage({
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <header className="border-b border-gray-200 bg-white px-4 py-3">
-        <Link href="/browse" className="text-sm text-gray-500">
-          ← bookswap
-        </Link>
-      </header>
+      <AppHeader />
 
       <div className="mx-auto max-w-lg px-4 py-6">
         <div
@@ -119,7 +116,7 @@ export default async function ListingDetailPage({
                 id="listing-detail-lister-name"
                 className="text-sm font-medium text-gray-900"
               >
-                {lister.display_name}
+                {lister.display_name ?? "Unknown"}
               </p>
             </div>
             <span className="text-gray-400">→</span>

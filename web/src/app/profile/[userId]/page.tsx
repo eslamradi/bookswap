@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { AppHeader } from "@/components/layout/app-header";
 
 export default async function ProfilePage({
   params,
@@ -41,11 +41,7 @@ export default async function ProfilePage({
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <header className="border-b border-gray-200 bg-white px-4 py-3">
-        <Link href="/browse" className="text-sm text-gray-500">
-          ← bookswap
-        </Link>
-      </header>
+      <AppHeader />
 
       <div className="mx-auto max-w-lg px-4 py-6">
         <div
@@ -58,7 +54,7 @@ export default async function ProfilePage({
           </div>
           <div>
             <p id="profile-name" className="font-semibold text-gray-900">
-              {profile.display_name}
+              {profile.display_name ?? "Unknown"}
             </p>
             <p id="profile-rating" className="text-xs text-gray-500">
               {averageRating

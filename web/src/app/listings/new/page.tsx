@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { BatchListingForm } from "@/components/listings/batch-listing-form";
+import { AppHeader } from "@/components/layout/app-header";
 
 export default async function NewListingsPage() {
   const supabase = await createClient();
@@ -14,6 +15,8 @@ export default async function NewListingsPage() {
 
   return (
     <main className="min-h-screen bg-gray-50 pb-24">
+      <AppHeader />
+
       <div className="mx-auto max-w-lg px-4 py-6">
         <BatchListingForm userId={user.id} />
       </div>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { NotifyButton } from "@/components/search/notify-button";
+import { AppHeader } from "@/components/layout/app-header";
 
 // Strip characters that would break PostgREST's .or() filter syntax
 // (commas separate conditions, parens/percent/underscore are pattern
@@ -51,11 +52,7 @@ export default async function SearchPage({
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <header className="border-b border-gray-200 bg-white px-4 py-3">
-        <Link href="/" className="text-sm text-gray-500">
-          ← bookswap
-        </Link>
-      </header>
+      <AppHeader />
 
       <div className="mx-auto max-w-lg px-4 py-6">
         <h1

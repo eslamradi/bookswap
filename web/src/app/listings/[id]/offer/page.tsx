@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { OfferForm } from "@/components/listings/offer-form";
+import { AppHeader } from "@/components/layout/app-header";
 
 export default async function OfferPage({
   params,
@@ -34,9 +35,7 @@ export default async function OfferPage({
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <header className="border-b border-gray-200 bg-white px-4 py-3 text-sm text-gray-500">
-        bookswap
-      </header>
+      <AppHeader />
 
       <div className="mx-auto max-w-lg px-4 py-6">
         <div

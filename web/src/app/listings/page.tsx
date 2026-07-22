@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { AppHeader } from "@/components/layout/app-header";
 
 type Listing = {
   id: string;
@@ -67,17 +68,7 @@ export default async function ListingsPage() {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <header className="border-b border-gray-200 bg-white px-4 py-3">
-        <div className="mx-auto flex max-w-lg items-center justify-between">
-          <span className="text-sm text-gray-500">bookswap</span>
-          <Link
-            href="/account"
-            className="text-sm text-bookswap-600 hover:text-bookswap-700"
-          >
-            Account
-          </Link>
-        </div>
-      </header>
+      <AppHeader />
 
       <div className="mx-auto max-w-lg px-4 py-6">
         {items.length > 0 ? (
@@ -164,10 +155,13 @@ export default async function ListingsPage() {
                   className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3 hover:bg-gray-50"
                 >
                   <span className="truncate text-sm text-gray-900">
-                    {/* Supabase types this embedded relation as an array even
-                        though it's a to-one join via a single FK */}
-                    {(offer.listings as unknown as { title: string }[])[0]
-                      ?.title ?? "Listing"}
+                    {/* PostgREST returns a to-one embed as a plain object at
+                        runtime, not the array the generated type implies —
+                        handle both rather than assuming one. */}
+                    {(Array.isArray(offer.listings)
+                      ? offer.listings[0]
+                      : offer.listings
+                    )?.title ?? "Listing"}
                   </span>
                   <span className="ml-2 flex-shrink-0 rounded bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">
                     {offer.status}

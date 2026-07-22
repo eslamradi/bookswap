@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { GENRES, type Genre } from "@/lib/books/genres";
+import { AppHeader } from "@/components/layout/app-header";
 
 function isGenre(value: string): value is Genre {
   return (GENRES as readonly string[]).includes(value);
@@ -47,13 +48,9 @@ export default async function BrowsePage({
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <header className="border-b border-gray-200 bg-white px-4 py-3">
-        <Link href="/" className="text-sm text-gray-500">
-          ← bookswap
-        </Link>
-      </header>
+      <AppHeader />
 
-      <div className="mx-auto max-w-3xl px-4 py-6">
+      <div className="mx-auto max-w-5xl px-4 py-6">
         <h1 className="mb-4 text-lg font-semibold text-gray-900">
           Browse books
         </h1>
@@ -61,13 +58,13 @@ export default async function BrowsePage({
         <div
           id="browse-genre-filter"
           data-object-id="browse-genre-filter"
-          className="mb-6 flex flex-wrap gap-2"
+          className="mb-6 flex gap-2 overflow-x-auto whitespace-nowrap pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           <Link
             id="browse-genre-all"
             data-object-id="browse-genre-all"
             href="/browse"
-            className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+            className={`flex-shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
               !activeGenre
                 ? "border-bookswap-600 bg-bookswap-600 text-white"
                 : "border-gray-300 bg-white text-gray-600 hover:bg-gray-50"
@@ -81,7 +78,7 @@ export default async function BrowsePage({
               id={`browse-genre-${g}`}
               data-object-id={`browse-genre-${g}`}
               href={`/browse?genre=${encodeURIComponent(g)}`}
-              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+              className={`flex-shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
                 activeGenre === g
                   ? "border-bookswap-600 bg-bookswap-600 text-white"
                   : "border-gray-300 bg-white text-gray-600 hover:bg-gray-50"
@@ -95,7 +92,7 @@ export default async function BrowsePage({
         <div
           id="browse-grid"
           data-object-id="browse-grid"
-          className="grid grid-cols-2 gap-4 sm:grid-cols-3"
+          className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5"
         >
           {items.map((item, i) => (
             <Link

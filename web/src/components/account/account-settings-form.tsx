@@ -89,8 +89,8 @@ export function AccountSettingsForm({
           Preferred exchange method
         </p>
         <p className="mb-3 text-xs text-gray-500">
-          A head start for future trades — not required, and not yet
-          automatically applied at handoff time.
+          Applied automatically at handoff time if set — not required, and
+          you can always choose differently for a specific trade.
         </p>
         <div className="space-y-2">
           {(

@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { RatingForm } from "@/components/trades/rating-form";
+import { AppHeader } from "@/components/layout/app-header";
 
 export default async function RatingPage({
   params,
@@ -46,9 +47,7 @@ export default async function RatingPage({
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <header className="border-b border-gray-200 bg-white px-4 py-3 text-sm text-gray-500">
-        bookswap
-      </header>
+      <AppHeader />
 
       <div className="mx-auto max-w-lg px-4 py-6">
         <div id="rating-trade-complete" data-object-id="rating-trade-complete" className="mb-6 text-center">
