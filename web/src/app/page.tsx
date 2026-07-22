@@ -1,9 +1,15 @@
 import Link from "next/link";
 import { SearchBar } from "@/components/search/search-bar";
+import { createClient } from "@/lib/supabase/server";
 
 // Public search home — no auth required. Every documented entry point for
 // Priya (Scenario 02) is a search-engine result landing directly here.
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-4">
       <div id="home-container" data-object-id="home-container" className="w-full max-w-md text-center">
@@ -20,8 +26,11 @@ export default function Home() {
           <Link href="/listings/new" className="hover:text-gray-700">
             Sell your books →
           </Link>
-          <Link href="/sign-in" className="hover:text-gray-700">
-            Sign in →
+          <Link
+            href={user ? "/account" : "/sign-in"}
+            className="hover:text-gray-700"
+          >
+            {user ? "Account →" : "Sign in →"}
           </Link>
         </div>
       </div>
